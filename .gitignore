@@ -1,0 +1,31 @@
+# --- Локальная инфраструктура ---
+_docs/
+_main_agent/
+_scripts/
+_shared_data_agents/
+_archive/
+.kilo/
+
+# --- C# / .NET ---
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.dll
+*.pdb
+*.exe
+*.log
+
+# --- IDE ---
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini

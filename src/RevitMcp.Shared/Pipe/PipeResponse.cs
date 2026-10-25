@@ -11,6 +11,9 @@ public sealed class PipeResponse
     /// <summary>Идентификатор запроса, на который это ответ.</summary>
     public string RequestId { get; init; } = string.Empty;
 
+    /// <summary>Тип ответа (Pong для ответа на Ping, иначе Unknown).</summary>
+    public PipeMessageType Type { get; init; } = PipeMessageType.Unknown;
+
     /// <summary>Успешно ли выполнена операция.</summary>
     public bool Success { get; init; }
 

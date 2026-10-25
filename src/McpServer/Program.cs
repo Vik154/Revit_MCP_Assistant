@@ -1,22 +1,18 @@
 using RevitMcp.McpServer.Client;
-using RevitMcp.Shared.Contracts;
-using RevitMcp.Shared.Enums;
-using System.Text.Json;
+using RevitMcp.McpServer.Mcp;
 
 namespace RevitMcp.McpServer;
 
 /// <summary>
-/// Временная точка входа для интеграционного теста (task_006).
-/// Подключается к Revit, вызывает get_revit_status, печатает результат.
-/// В task_007 будет заменена на полноценный MCP Server с stdio транспортом.
+/// Точка входа MCP-сервера (stdio-транспорт для Cline/Cursor).
+/// В фоне поддерживает соединение с Revit, в основном потоке — JSON-RPC на stdin/stdout.
 /// </summary>
 public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        Console.WriteLine("=== RevitMcp Integration Test (task_006) ===");
-        Console.WriteLine("Убедитесь, что Revit 2025 запущен и плагин загружен.");
-        Console.WriteLine();
+        // Все логи — в stderr: stdout зарезервирован под JSON-RPC (MCP stdio).
+        Console.Error.WriteLine("[McpServer] Запуск MCP Server (stdio)...");
 
         using var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) =>
@@ -25,63 +21,60 @@ public static class Program
             cts.Cancel();
         };
 
-        await using var client = new PipeClient();
+        await using var pipe = new PipeClient();
+        pipe.StatusChanged += (_, status) =>
+            Console.Error.WriteLine($"[McpServer] Pipe status: {status}");
 
-        try
+        // Фон: поддержание соединения с Revit (connect + reconnect).
+        _ = Task.Run(() => MaintainConnectionAsync(pipe, cts.Token), cts.Token);
+
+        // Фон: health check Ping/Pong.
+        _ = Task.Run(() => pipe.StartHealthCheckAsync(TimeSpan.FromSeconds(5), cts.Token), cts.Token);
+
+        // Основной цикл: MCP stdio.
+        var registry = new ToolRegistry(pipe);
+        var host = new McpServerHost(registry);
+        await host.RunAsync(cts.Token).ConfigureAwait(false);
+
+        cts.Cancel();
+        Console.Error.WriteLine("[McpServer] Остановлен.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Держит соединение с Revit живым: подключается при обрыве,
+    /// ретраи с backoff внутри ConnectWithRetryAsync. Не бросает — крутится до отмены.
+    /// </summary>
+    private static async Task MaintainConnectionAsync(PipeClient pipe, CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
         {
-            // 1. Подключаемся к Revit (с retry, если Revit не запущен).
-            Console.WriteLine("[1/3] Подключение к Revit...");
-            using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
-            connectCts.CancelAfter(TimeSpan.FromSeconds(60));
-
-            await client.ConnectWithRetryAsync(connectCts.Token).ConfigureAwait(false);
-            Console.WriteLine("✅ Подключено к Revit.");
-            Console.WriteLine();
-
-            // 2. Вызываем get_revit_status.
-            Console.WriteLine("[2/3] Вызов get_revit_status...");
-            var response = await client.CallToolAsync(ToolNames.GetRevitStatus, ct: cts.Token).ConfigureAwait(false);
-
-            if (!response.Success)
+            if (!pipe.IsConnected)
             {
-                Console.WriteLine($"❌ Ошибка: {response.ErrorCode} — {response.ErrorMessage}");
-                return 1;
-            }
-
-            // 3. Десериализуем и печатаем результат.
-            Console.WriteLine("[3/3] Результат:");
-            if (response.Result.HasValue)
-            {
-                var result = response.Result.Value.Deserialize<GetRevitStatusResult>();
-                if (result is not null)
+                try
                 {
-                    Console.WriteLine($"  Версия Revit:     {result.RevitVersion}");
-                    Console.WriteLine($"  Документ:         {(result.HasDocument ? result.DocumentTitle : "(не открыт)")}");
-                    Console.WriteLine($"  Элементов:        {result.ElementCount}");
+                    await pipe.ConnectWithRetryAsync(ct).ConfigureAwait(false);
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    Console.WriteLine("  (не удалось десериализовать результат)");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"[McpServer] Ошибка подключения: {ex.Message}");
                 }
             }
             else
             {
-                Console.WriteLine("  (пустой результат)");
+                try
+                {
+                    await Task.Delay(1_000, ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
-
-            Console.WriteLine();
-            Console.WriteLine("✅ Интеграционный тест пройден.");
-            return 0;
-        }
-        catch (OperationCanceledException)
-        {
-            Console.WriteLine("❌ Отменено пользователем.");
-            return 1;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Ошибка: {ex.Message}");
-            return 1;
         }
     }
 }

@@ -100,7 +100,7 @@ public sealed class PipeClient : IAsyncDisposable
             catch (Exception ex)
             {
                 attempt++;
-                Console.WriteLine($"[PipeClient] Попытка {attempt}: {ex.Message}. Повтор через {delay}мс.");
+                Console.Error.WriteLine($"[PipeClient] Попытка {attempt}: {ex.Message}. Повтор через {delay}мс.");
 
                 try
                 {
@@ -234,12 +234,12 @@ public sealed class PipeClient : IAsyncDisposable
 
                 if (response.Type != PipeMessageType.Pong || !response.Success)
                 {
-                    Console.WriteLine($"[PipeClient] Health check: получен неожиданный ответ type={response.Type}, success={response.Success}");
+                    Console.Error.WriteLine($"[PipeClient] Health check: получен неожиданный ответ type={response.Type}, success={response.Success}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PipeClient] Health check провалился: {ex.Message}");
+                Console.Error.WriteLine($"[PipeClient] Health check провалился: {ex.Message}");
                 SetStatus(PipeClientStatus.Disconnected);
             }
         }

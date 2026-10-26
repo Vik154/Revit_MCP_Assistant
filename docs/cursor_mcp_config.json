@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "revit-mcp": {
+      "command": "dotnet",
+      "args": ["run", "--project", "C:/Users/Smoro/Desktop/BIM-Assistant/Revit_MCP_Assistant/src/McpServer"],
+      "cwd": "C:/Users/Smoro/Desktop/BIM-Assistant/Revit_MCP_Assistant",
+      "env": {}
+    }
+  }
+}

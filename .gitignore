@@ -1,31 +1,44 @@
-# --- Локальная инфраструктура ---
+# --- .NET / Visual Studio ---
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userprefs
+*.cache
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# --- NuGet ---
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# --- Сборка ---
+publish/
+*.publishsettings
+
+# --- Мета-инфраструктура агентов (НЕ коммитить) ---
 _docs/
 _main_agent/
 _scripts/
 _shared_data_agents/
-_archive/
-.kilo/
+**/_agent/
 
-# --- C# / .NET ---
-[Bb]in/
-[Oo]bj/
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-*.dll
-*.pdb
-*.exe
-*.log
-
-# --- IDE ---
-.vs/
-.vscode/
-.idea/
-*.swp
-*.swo
+# --- Секреты ---
+.env
+settings.json
+appsettings.*.json
 
 # --- OS ---
 .DS_Store
 Thumbs.db
-desktop.ini
+
+# --- IDE ---
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

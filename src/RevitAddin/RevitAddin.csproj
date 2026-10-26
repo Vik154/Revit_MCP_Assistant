@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>RevitMcp.RevitAddin</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Путь к установленному Revit 2025.
+         Можно переопределить при сборке:
+         dotnet build -p:RevitInstallPath="D:\Другой\Путь\" -->
+    <RevitInstallPath Condition="'$(RevitInstallPath)' == ''">C:\SOFT\Autodesk\Revit 2025\</RevitInstallPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Ссылки на Revit API. Private=False: НЕ копировать в выходную папку. -->
+    <Reference Include="RevitAPI">
+      <HintPath>$(RevitInstallPath)RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(RevitInstallPath)RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RevitMcp.Shared\RevitMcp.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="RevitMcp.addin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

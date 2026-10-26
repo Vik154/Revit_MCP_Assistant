@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Revit MCP Assistant</Name>
+    <Assembly>RevitAddin.dll</Assembly>
+    <AddInId>A3F5B7C9-1D2E-4F60-8A1B-2C3D4E5F6A7B</AddInId>
+    <FullClassName>RevitMcp.RevitAddin.App</FullClassName>
+    <VendorId>Vik154</VendorId>
+    <VendorDescription>Vik154</VendorDescription>
+  </AddIn>
+</RevitAddIns>
